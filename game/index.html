@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Solara Bay — Open-World Crime</title>
+<style>
+  html, body { margin: 0; height: 100%; overflow: hidden; background: #0a1420; font-family: 'Segoe UI', Arial, sans-serif; }
+  #game { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+  #status { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .hud { position: fixed; z-index: 5; color: #fff; pointer-events: none; text-shadow: 0 2px 4px rgba(0,0,0,.85), 0 0 2px rgba(0,0,0,.9); }
+  .panel { background: rgba(8, 18, 32, .62); border: 1px solid rgba(255,255,255,.28); border-radius: 10px; padding: 8px 12px; backdrop-filter: blur(2px); }
+  #missionBox { top: 14px; left: 14px; max-width: 430px; }
+  #missionBox .mname { font-size: 21px; font-weight: 800; letter-spacing: .5px; color: #ffe9a8; }
+  #missionBox .mobj { font-size: 15px; font-weight: 600; margin-top: 2px; }
+  #missionBox .msub { font-size: 12.5px; opacity: .92; margin-top: 2px; }
+  #cashBox { top: 14px; right: 14px; text-align: right; }
+  #cashBox .cash { font-size: 26px; font-weight: 800; color: #7dff9a; }
+  #cashBox .clock { font-size: 16px; font-weight: 700; }
+  #stars { font-size: 26px; letter-spacing: 3px; margin-top: 2px; }
+  #stars .on { color: #ffd23e; } #stars .off { color: rgba(255,255,255,.35); }
+  #unitsBox { top: 150px; right: 14px; width: 218px; font-size: 12.5px; }
+  #unitsBox h3 { margin: 0 0 4px; font-size: 13px; color: #9fd8ff; letter-spacing: 1px; }
+  #unitsBox .u { display: flex; justify-content: space-between; padding: 1px 0; }
+  #unitsBox .u b { color: #ffd23e; }
+  #speedBox { bottom: 16px; right: 16px; text-align: right; }
+  #speedBox .spd { font-size: 34px; font-weight: 800; }
+  #speedBox .spd small { font-size: 14px; }
+  #speedBox .dmg { font-size: 14px; font-weight: 700; color: #ffb14d; }
+  #healthBox { bottom: 16px; left: 16px; width: 230px; }
+  #healthBox .bar { height: 12px; background: rgba(255,255,255,.25); border-radius: 6px; overflow: hidden; }
+  #healthBox .bar i { display: block; height: 100%; background: linear-gradient(90deg,#37e05a,#a5ff6e); }
+  #healthBox .wep { font-size: 15px; font-weight: 700; margin-top: 5px; }
+  #healthBox .fuel { font-size: 13px; font-weight: 700; color: #ffb14d; margin-top: 3px; }
+  #minimapWrap { bottom: 16px; left: 262px; width: 168px; height: 168px; border-radius: 50%; overflow: hidden; border: 3px solid rgba(255,255,255,.75); box-shadow: 0 0 0 3px rgba(0,0,0,.45); background: #0c2a44; }
+  #minimap { width: 100%; height: 100%; display: block; }
+  #banner { top: 38%; left: 50%; transform: translate(-50%,-50%); text-align: center; display: none; }
+  #banner .big { font-size: 46px; font-weight: 900; letter-spacing: 2px; color: #ffe9a8; }
+  #banner .sub { font-size: 19px; font-weight: 700; }
+  #toast { bottom: 200px; left: 50%; transform: translateX(-50%); font-size: 16px; font-weight: 700; background: rgba(8,18,32,.7); padding: 6px 14px; border-radius: 8px; display: none; }
+  #help { bottom: 196px; right: 16px; font-size: 12px; text-align: right; opacity: .9; }
+  #menu { position: fixed; inset: 0; z-index: 10; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, rgba(10,30,60,.88), rgba(60,10,40,.82)); color: #fff; }
+  #menu .card { text-align: center; max-width: 620px; padding: 26px 34px; }
+  #menu h1 { font-size: 56px; margin: 0; letter-spacing: 3px; color: #ffd23e; text-shadow: 0 4px 0 #b3541e, 0 8px 24px rgba(0,0,0,.6); }
+  #menu h2 { font-size: 19px; margin: 4px 0 14px; color: #9fd8ff; letter-spacing: 4px; }
+  #menu p { font-size: 15px; line-height: 1.5; }
+  #menu .keys { font-size: 13.5px; background: rgba(0,0,0,.35); border-radius: 10px; padding: 10px 14px; text-align: left; display: inline-block; }
+  #menu button, .btn { pointer-events: auto; cursor: pointer; font-size: 18px; font-weight: 800; padding: 12px 30px; border-radius: 10px; border: none; background: #ffb400; color: #231303; margin-top: 14px; }
+  /* Meta / MAP screen: fully opaque, no 3D bleed-through */
+  #meta { position: fixed; inset: 0; z-index: 20; display: none; background: #0d1526; color: #eaf2ff; overflow: hidden; }
+  #meta .inner { display: grid; grid-template-columns: 430px 1fr 300px; gap: 14px; padding: 14px 18px; height: 100%; box-sizing: border-box; }
+  #meta h1 { font-size: 24px; margin: 2px 0 6px; color: #ffd23e; }
+  #meta h2 { font-size: 15px; margin: 10px 0 5px; color: #9fd8ff; border-bottom: 1px solid #2a3f5f; padding-bottom: 3px; }
+  #meta .col { background: #12203a; border: 1px solid #2a3f5f; border-radius: 12px; padding: 10px 12px; overflow: hidden; }
+  #mapCanvas { width: 100%; height: 300px; display: block; border-radius: 8px; background: #0a1a2e; }
+  #meta .ring { display: flex; align-items: center; gap: 12px; }
+  #meta .track { margin: 4px 0; font-size: 13px; }
+  #meta .track .bar { height: 9px; background: #22375a; border-radius: 5px; overflow: hidden; }
+  #meta .track .bar i { display: block; height: 100%; background: linear-gradient(90deg,#ffb400,#ff7a3c); }
+  #meta .row { display: flex; justify-content: space-between; font-size: 13.5px; padding: 2.5px 0; }
+  #meta .row b { color: #ffd23e; }
+  #meta .slot { border: 2px solid #2a3f5f; border-radius: 10px; padding: 8px 10px; margin: 6px 0; font-size: 13.5px; background: #0f1c33; }
+  #meta .slot.filled { border-color: #ffb400; }
+  #meta .slot .t { font-weight: 800; color: #ffd23e; }
+  #meta .tag { display: inline-block; font-size: 11px; font-weight: 800; padding: 2px 7px; border-radius: 6px; margin-left: 6px; }
+  #meta .owned { background: #1f7a37; color: #d6ffd6; } #meta .locked { background: #5a2230; color: #ffc9c9; }
+  #meta .close { position: absolute; bottom: 12px; right: 16px; z-index: 21; }
+</style>
+</head>
+<body>
+<canvas id="game" aria-label="Solara Bay: open-world crime game. Drive, fight and complete missions across the city."></canvas>
+<p id="status" role="status" aria-live="polite"></p>
+
+<div id="missionBox" class="hud panel">
+  <div class="mname" id="mName">M1 &middot; FIRST LIGHT</div>
+  <div class="mobj" id="mObj">Drive to the pier checkpoint</div>
+  <div class="msub" id="mSub">Follow the gold marker &middot; 0:42 left</div>
+</div>
+<div id="cashBox" class="hud panel">
+  <div class="cash" id="cash">$4,120</div>
+  <div class="clock" id="clock">12:00 &middot; SUNNY</div>
+  <div id="stars"><span class="off">&#9733;</span><span class="off">&#9733;</span><span class="off">&#9733;</span><span class="off">&#9733;</span><span class="off">&#9733;</span></div>
+</div>
+<div id="unitsBox" class="hud panel">
+  <h3>SBPD &middot; ACTIVE UNITS</h3>
+  <div id="units"></div>
+</div>
+<div id="healthBox" class="hud panel">
+  <div class="bar"><i id="hpBar" style="width:100%"></i></div>
+  <div class="wep" id="weapon">PISTOL &middot; 12 / 48</div>
+  <div class="fuel" id="fuel" style="display:none">JETPACK FUEL &#9646;&#9646;&#9646;&#9646;&#9646;&#9646;&#9646;&#9646; 82%</div>
+</div>
+<div id="minimapWrap" class="hud"><canvas id="minimap" width="168" height="168"></canvas></div>
+<div id="speedBox" class="hud panel">
+  <div class="spd"><span id="speed">0</span> <small>KM/H</small></div>
+  <div class="dmg" id="damage">CONDITION 100% &middot; CLEAN</div>
+</div>
+<div id="banner" class="hud"><div class="big" id="bannerBig">MISSION COMPLETE</div><div class="sub" id="bannerSub">+$2,400</div></div>
+<div id="toast" class="hud"></div>
+<div id="help" class="hud">WASD drive &middot; SPACE brake &middot; F fire &middot; E enter/exit &middot; J jetpack<br>R weapon &middot; M map &middot; P pause &middot; 1-6 weapons</div>
+
+<div id="menu">
+  <div class="card">
+    <h1>SOLARA BAY</h1>
+    <h2>OPEN-WORLD CRIME &middot; SUN COAST</h2>
+    <p>Eight story missions across a sun-soaked bay city. Steal cars, outrun the SBPD,
+    fight the Regent crew, and fly the jetpack over the sunset boulevard. The bay is yours —
+    if the five-star heat does not catch you first.</p>
+    <div class="keys">WASD — drive / walk &nbsp;·&nbsp; SPACE — brake &nbsp;·&nbsp; F — fire weapon<br>
+    E — enter / exit vehicle &nbsp;·&nbsp; J — jetpack &nbsp;·&nbsp; R — reload &nbsp;·&nbsp; M — map &amp; stats &nbsp;·&nbsp; P — pause</div>
+    <br><button id="playBtn">START GAME</button>
+    <p style="font-size:12.5px;opacity:.85">Save slots: 3 &middot; Autosave after every mission &middot; Headphones on — synth radio inside</p>
+  </div>
+</div>
+
+<div id="meta">
+  <button class="btn close" id="metaClose">CLOSE &middot; M</button>
+  <div class="inner">
+    <div class="col">
+      <h1>MAP &middot; SOLARA BAY</h1>
+      <canvas id="mapCanvas" width="400" height="300"></canvas>
+      <h2>DISTRICTS</h2>
+      <div id="districts"></div>
+    </div>
+    <div class="col">
+      <h1>STATS &middot; MARA VOSS</h1>
+      <div class="ring">
+        <svg width="110" height="110" viewBox="0 0 110 110"><circle cx="55" cy="55" r="46" fill="none" stroke="#22375a" stroke-width="11"/><circle cx="55" cy="55" r="46" fill="none" stroke="#ffb400" stroke-width="11" stroke-linecap="round" stroke-dasharray="289.03" stroke-dashoffset="98.0" transform="rotate(-90 55 55)"/><text x="55" y="52" text-anchor="middle" fill="#fff" font-size="19" font-weight="800">66.1%</text><text x="55" y="70" text-anchor="middle" fill="#9fd8ff" font-size="9.5">COMPLETE</text></svg>
+        <div style="font-size:13.5px;line-height:1.6">Story missions <b style="color:#ffd23e">6 / 8</b><br>Side jobs <b style="color:#ffd23e">11 / 14</b><br>Collectibles <b style="color:#ffd23e">27 / 40</b><br>Cash on hand <b style="color:#7dff9a">$21,340</b></div>
+      </div>
+      <h2>PROGRESS TRACKS</h2>
+      <div id="tracks"></div>
+      <h2>CAREER STATS</h2>
+      <div id="career"></div>
+    </div>
+    <div class="col">
+      <h1>CREW &amp; GEAR</h1>
+      <h2>WORKSHOP</h2>
+      <div id="workshop"></div>
+      <h2>WEAPONS &amp; GEAR</h2>
+      <div id="gear"></div>
+      <h2>CREW</h2>
+      <div id="crew"></div>
+      <h2>SAVE SLOTS</h2>
+      <div id="slots"></div>
+    </div>
+  </div>
+</div>
+
+<script type="importmap">{"imports":{"three":"./vendor/three.module.min.js"}}</script>
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
