@@ -1,3 +1,4 @@
+// Solara Bay v20 — procedural canvas textures.
 // Procedural canvas textures for Solara Bay. Everything is drawn in code with a
 // seeded RNG so the look is identical on every load — no downloaded images.
 // All colour maps are tagged sRGB; facades are 1024x1024 so close-up walls read
