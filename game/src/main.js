@@ -1,3 +1,4 @@
+// Fix #3 re-cover (2026-11-24): recorded re-write of the fix #2 foot + meta pass.
 // Solara Bay — main entry. Boots the renderer, builds the world, runs the
 // 60 Hz fixed-step simulation, drives the hero car / player / jetpack, fires
 // weapons with tracers and muzzle flash, runs police + traffic AI, and stages

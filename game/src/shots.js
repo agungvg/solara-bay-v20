@@ -1,3 +1,4 @@
+// Fix #3 re-cover (2026-11-24): recorded re-write of the fix #2 foot + meta pass.
 // Staged screenshot setups for Solara Bay (?shot=cover|foot|chase|meta).
 // Each shot is a fully staged, deterministic frame of the live game — the same
 // scene, lighting and HUD the player sees, frozen at its most dramatic beat.

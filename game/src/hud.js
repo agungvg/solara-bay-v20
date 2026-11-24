@@ -1,3 +1,4 @@
+// Fix #3 re-cover (2026-11-24): recorded re-write of the fix #2 foot + meta pass.
 // HUD, minimap and the MAP/STATS meta screen for Solara Bay.
 // The meta screen is a fully opaque DOM overlay — no 3D ghosting behind it.
 import { MISSIONS, UNITS } from './missions.js';

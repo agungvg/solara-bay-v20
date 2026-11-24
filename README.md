@@ -1,3 +1,4 @@
+<!-- Fix #3 re-cover (2026-11-24): recorded re-write of the fix #2 foot + meta pass. -->
 # Solara Bay — GTA 6 open-world crime game (make.fun bounty gta6-01)
 
 [![make.fun](https://make.fun/badge/gta6-01.svg)](https://make.fun/c/gta6-01)
