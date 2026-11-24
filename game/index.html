@@ -59,6 +59,13 @@
   #meta .track .bar i { display: block; height: 100%; background: linear-gradient(90deg,#ffb400,#ff7a3c); }
   #meta .row { display: flex; justify-content: space-between; font-size: 13.5px; padding: 2.5px 0; }
   #meta .row b { color: #ffd23e; }
+  #ratings { display: flex; flex-wrap: wrap; gap: 6px; }
+  #ratings .rate { display: inline-flex; align-items: baseline; gap: 4px; font-size: 12.5px; font-weight: 700; color: #eaf2ff; background: #0f1c33; border: 2px solid #2a3f5f; border-radius: 8px; padding: 4px 8px; }
+  #ratings .rate b { font-size: 16px; }
+  #ratings .rate.gold { border-color: #ffb400; } #ratings .rate.gold b { color: #ffd23e; }
+  #ratings .rate.silver { border-color: #8fa3b8; } #ratings .rate.silver b { color: #d7dee8; }
+  #ratings .rate.bronze { border-color: #b06a35; } #ratings .rate.bronze b { color: #e08a4d; }
+  #ratings .rate.none { border-color: #2a3f5f; } #ratings .rate.none b { color: #7a8aa0; }
   #meta .slot { border: 2px solid #2a3f5f; border-radius: 10px; padding: 8px 10px; margin: 6px 0; font-size: 13.5px; background: #0f1c33; }
   #meta .slot.filled { border-color: #ffb400; }
   #meta .slot .t { font-weight: 800; color: #ffd23e; }
@@ -121,6 +128,8 @@
       <canvas id="mapCanvas" width="400" height="300"></canvas>
       <h2>DISTRICTS</h2>
       <div id="districts"></div>
+      <h2>MISSION RATINGS</h2>
+      <div id="ratings"></div>
     </div>
     <div class="col">
       <h1>STATS &middot; MARA VOSS</h1>

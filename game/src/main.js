@@ -102,6 +102,7 @@ G.guards.forEach((gd, i) => { gd.position.set(30 + i * 3, 0, 30 - i * 6); gd.vis
 G.downed = makeDowned();
 G.downed.position.set(26, 0, 30.5); G.downed.visible = false; scene.add(G.downed);
 const crowd = makeCrowd(scene);
+G.crowd = crowd; // staged shots reposition peds; gameplay never touches it
 
 // ---- effects: muzzle flash sprite, tracers, debris, smoke, skid marks ----
 const flash = new THREE.Sprite(new THREE.SpriteMaterial({ map: flashTexture(), transparent: true, opacity: 0, depthWrite: false, fog: false }));

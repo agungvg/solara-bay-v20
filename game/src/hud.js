@@ -119,6 +119,12 @@ const DISTRICTS = [
   ['Solara Heights', 'Hills'], ['Marina Bay', 'Harbor'], ['Sunset Strip', 'Boulevard'],
   ['Palm Court', 'Residential'], ['Airport Flats', 'South'],
 ];
+// Mission ratings, v18 convention: S = top, G = gold, B = bronze, — = not
+// played yet. Six of eight missions are complete, so M1–M6 carry a rating.
+const RATINGS = [
+  ['M1', 'S'], ['M2', 'G'], ['M3', 'G'], ['M4', 'B'],
+  ['M5', 'S'], ['M6', 'G'], ['M7', '—'], ['M8', '—'],
+];
 
 export function renderMeta() {
   $('tracks').innerHTML = TRACKS.map(([n, a, b]) =>
@@ -128,6 +134,8 @@ export function renderMeta() {
   $('gear').innerHTML = GEAR.map(([n, s]) => `<div class="row"><span>${n}</span><span class="tag ${s === 'OWNED' ? 'owned' : 'locked'}">${s}</span></div>`).join('');
   $('crew').innerHTML = CREW.map(([n, r]) => `<div class="row"><span>${n}</span><b>${r}</b></div>`).join('');
   $('districts').innerHTML = DISTRICTS.map(([n, d]) => `<div class="row"><span>${n}</span><b>${d}</b></div>`).join('');
+  $('ratings').innerHTML = RATINGS.map(([m, r]) =>
+    `<span class="rate ${r === 'G' ? 'gold' : r === 'S' ? 'silver' : r === 'B' ? 'bronze' : 'none'}"><b>${r}</b>${m}</span>`).join('');
   const saves = JSON.parse(localStorage.getItem('solara-saves') || '[]');
   const slots = [
     { n: 1, label: saves[0] ? `FILLED · ${saves[0]}` : 'EMPTY' },
@@ -139,7 +147,10 @@ export function renderMeta() {
   drawMap();
 }
 
-// Real 8-district map drawn on canvas: ocean, beach, road grid, labels.
+// Detailed street-grid map drawn on canvas: ocean, beach, 8 district blocks
+// subdivided into parcels by inner streets, dashed avenues, a gold M6 route
+// with waypoint dots, and a player marker placed clear of every label
+// (it used to sit on top of the "Sunset Strip" text).
 export function drawMap() {
   const cv = $('mapCanvas'); if (!cv) return;
   const g = cv.getContext('2d');
@@ -151,17 +162,53 @@ export function drawMap() {
   rects.forEach(([x, y, w, h], i) => {
     g.fillStyle = cols[i % 4]; g.fillRect(x, y, w, h);
     g.strokeStyle = '#5a7d9c'; g.lineWidth = 1; g.strokeRect(x, y, w, h);
+    // inner streets: subdivide the block into parcels BELOW the labels
+    g.strokeStyle = '#1e3a52'; g.lineWidth = 2;
+    g.beginPath(); g.moveTo(x + w * 0.6, y + 46); g.lineTo(x + w * 0.6, y + h - 4); g.stroke();
+    g.beginPath(); g.moveTo(x + 4, y + h - 10); g.lineTo(x + w - 4, y + h - 10); g.stroke();
+    // tiny building footprints in the lower parcels: a parcel map, not a slab
+    g.fillStyle = 'rgba(255,255,255,0.10)';
+    g.fillRect(x + 8, y + h - 9, 16, 8);
+    g.fillRect(x + w * 0.66, y + h - 9, 20, 8);
+    g.fillStyle = 'rgba(0,0,0,0.18)';
+    g.fillRect(x + 30, y + 48, 12, 7);
+    // district name + sub-label, top-left of the block, clear of the streets
     g.fillStyle = '#eaf2ff'; g.font = 'bold 12px Arial'; g.textAlign = 'left';
     g.fillText(DISTRICTS[i][0], x + 8, y + 22);
     g.fillStyle = '#9fd8ff'; g.font = '11px Arial';
     g.fillText(DISTRICTS[i][1], x + 8, y + 40);
   });
-  // roads
-  g.fillStyle = '#45484f'; g.fillRect(108, 0, 8, 300); g.fillRect(246, 0, 8, 300); g.fillRect(116, 76, 268, 8); g.fillRect(116, 150, 268, 8); g.fillRect(116, 220, 268, 8);
-  // yacht + ferris icons
-  g.fillStyle = '#ffd23e'; g.font = 'bold 12px Arial';
+  // two pocket parks inside the grid, clear of every label and of the route
+  g.fillStyle = '#2a6b3c';
+  g.fillRect(128, 66, 18, 8);
+  g.fillRect(128, 136, 18, 8);
+  // avenues: the roads between the blocks, with dashed yellow centrelines
+  g.fillStyle = '#45484f';
+  g.fillRect(108, 0, 8, 300); g.fillRect(246, 0, 8, 300);
+  g.fillRect(116, 76, 268, 8); g.fillRect(116, 150, 268, 8); g.fillRect(116, 220, 268, 8);
+  g.strokeStyle = '#d8a928'; g.lineWidth = 1; g.setLineDash([6, 6]);
+  g.beginPath(); g.moveTo(112, 0); g.lineTo(112, 300); g.moveTo(250, 0); g.lineTo(250, 300); g.stroke();
+  g.beginPath(); g.moveTo(116, 80); g.lineTo(384, 80); g.moveTo(116, 154); g.lineTo(384, 154); g.moveTo(116, 224); g.lineTo(384, 224); g.stroke();
+  g.setLineDash([]);
+  // M6 route: gold line, white under-stroke, waypoint dots — threaded along
+  // block edges and below the labels so it never crosses any text
+  const route = [[150, 66], [370, 66], [370, 140], [225, 140], [225, 212], [375, 212], [375, 262]];
+  g.lineJoin = 'round';
+  g.strokeStyle = 'rgba(255,255,255,0.85)'; g.lineWidth = 5;
+  g.beginPath(); route.forEach(([x, y], i) => { if (i === 0) g.moveTo(x, y); else g.lineTo(x, y); }); g.stroke();
+  g.strokeStyle = '#ffd23e'; g.lineWidth = 2.5;
+  g.beginPath(); route.forEach(([x, y], i) => { if (i === 0) g.moveTo(x, y); else g.lineTo(x, y); }); g.stroke();
+  for (const [x, y] of route) {
+    g.fillStyle = '#ffd23e'; g.beginPath(); g.arc(x, y, 4, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = '#fff'; g.lineWidth = 1.5; g.beginPath(); g.arc(x, y, 4, 0, Math.PI * 2); g.stroke();
+  }
+  // yacht + ferris icons + route legend, all in the empty ocean strip
+  g.fillStyle = '#ffd23e'; g.font = 'bold 12px Arial'; g.textAlign = 'left';
   g.fillText('⛵ YACHT', 12, 42); g.fillText('🎡 WHEEL', 12, 250);
-  // player marker (Sunset Strip, clear of labels)
-  g.fillStyle = '#fff'; g.beginPath(); g.arc(318, 191, 7, 0, Math.PI * 2); g.fill();
-  g.fillStyle = '#c8102e'; g.beginPath(); g.arc(318, 191, 4, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#9fd8ff'; g.font = 'bold 10px Arial';
+  g.fillText('◆ M6 ROUTE', 12, 130);
+  // player marker: top-right corner of the Sunset Strip block, clear of its
+  // name and sub-label (both end well left of x=359)
+  g.fillStyle = '#fff'; g.beginPath(); g.arc(366, 172, 7, 0, Math.PI * 2); g.fill();
+  g.fillStyle = '#c8102e'; g.beginPath(); g.arc(366, 172, 4, 0, Math.PI * 2); g.fill();
 }

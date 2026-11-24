@@ -26,9 +26,9 @@ the sunset boulevard.
   presets, fog matched to the horizon, one shadow-casting sun (4096 map)
 - **HUD + minimap**: mission box, cash, clock, wanted stars, SBPD unit list,
   health, weapon, speed, damage, circular minimap
-- **Meta**: MAP/STATS screen — real 8-district map, 66.1% completion ring,
-  8 progress tracks, career stats, workshop OWNED/LOCKED, gear, crew,
-  3 save slots (localStorage)
+- **Meta**: MAP/STATS screen — detailed street-grid map with the gold M6 route,
+  mission ratings M1–M8, 66.1% completion ring, 8 progress tracks, career stats,
+  workshop OWNED/LOCKED, gear, crew, 3 save slots (localStorage)
 - **Audio**: synthesised engine hum, two-tone sirens, gunshots, radio bass
   line — all WebAudio, no audio files
 
@@ -59,7 +59,7 @@ Three.js r160 is vendored under `game/vendor/three.module.min.js`.
 2. `2-foot.png` — M2 "COLLECT THE DROP": on-foot shootout at the FRUIT stall.
 3. `3-chase.png` — M3 "OUTRUN THE SUNSET ROADBLOCK": jetpack escape under
    fire from two helicopters at golden hour.
-4. `4-meta.png` — MAP/STATS: 8-district map, 66.1% ring, career stats,
-   workshop, crew, save slots.
+4. `4-meta.png` — MAP/STATS: street-grid map with M6 route, mission ratings,
+   66.1% ring, career stats, workshop, crew, save slots.
 
 All art, names, story and code are original — nothing from any commercial game.
